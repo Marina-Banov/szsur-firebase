@@ -13,3 +13,4 @@ export const deleteSubcollections = firestore.deleteSubcollections;
 export const enums = functions.https.onRequest(crudOperations("enums"));
 export const events = functions.https.onRequest(crudOperations("events"));
 export const surveys = functions.https.onRequest(crudOperations("surveys"));
+export const users = functions.https.onRequest(user.getUser);

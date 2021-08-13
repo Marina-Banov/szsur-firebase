@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { Request, Response } from "express";
 
 export const newUserSignUp = functions.auth.user().onCreate((user) => {
   if (user.providerData?.length) {
@@ -19,6 +20,44 @@ export const userDeleted = functions.auth.user().onDelete((user) => {
   batch.delete(userDocRef);
   return batch.commit();
 });
+
+export const getUser = (req: Request, res: Response) => {
+    if (!req.headers.authorization ||
+        !req.headers.authorization.startsWith("Bearer ")) {
+        console.error("Unauthorized");
+        res.status(401).send("Unauthorized");
+        return;
+    }
+
+    const idToken = req.headers.authorization.split("Bearer ")[1];
+    const userId = req.params[0].substring(1)
+
+    admin.auth().verifyIdToken(idToken)
+        .then((decodedToken) => {
+            if (decodedToken.uid === userId) {
+                admin.firestore().collection("users").doc(decodedToken.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            console.log("GET success", userId);
+                            res.send(doc.data());
+                        } else {
+                            console.log("GET undefined", userId);
+                            res.status(404).send("Not found");
+                        }
+                    }).catch((error) => {
+                        console.error("GET error", error);
+                        res.status(500).send(error);
+                    });
+            } else {
+                console.error("Forbidden");
+                res.status(403).send("Forbidden");
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send(error);
+        });
+};
 
 // TODO this should definitely NOT be a firestore trigger function.
 //  Make this an http call (requires work on the Android app)
