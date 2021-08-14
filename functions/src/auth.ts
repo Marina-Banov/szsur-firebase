@@ -68,10 +68,10 @@ export const validateUserOperations = (req: Request, res: Response, next: () => 
     }
 
     const idToken = req.headers.authorization.split("Bearer ")[1];
-    const userId = req.params[0]
+    const userId = req.params.id
 
     if (!userId || userId.length == 0) {
-        console.error("Forbidden");
+        console.error("Forbidden 1");
         res.status(403).send("Forbidden");
         return;
     }
@@ -81,7 +81,7 @@ export const validateUserOperations = (req: Request, res: Response, next: () => 
             if (decodedToken.uid === userId) {
                 next()
             } else {
-                console.error("Forbidden");
+                console.error("Forbidden 2");
                 res.status(403).send("Forbidden");
             }
         })

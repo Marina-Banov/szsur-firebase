@@ -27,9 +27,8 @@ export const userDeleted = functions.auth.user().onDelete((user) => {
 export const usersHttp = (): Express => {
     const app = express();
     app.use(cors());
-    app.use(validateUserOperations);
 
-    app.get("/:id", (req: Request, res: Response) => {
+    app.get("/:id", validateUserOperations, (req: Request, res: Response) => {
         admin.firestore().collection("users").doc(req.params.id).get()
             .then((doc) => {
                 if (doc.exists) {
@@ -45,7 +44,7 @@ export const usersHttp = (): Express => {
         });
     });
 
-    app.put("/:id/favorites", async (req: Request, res: Response) => {
+    app.put("/:id/favorites", validateUserOperations, async (req: Request, res: Response) => {
         const userId = req.params.id;
         const { liked, isEvent, favoriteId } = req.body;
 
