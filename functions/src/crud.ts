@@ -1,47 +1,14 @@
 import * as admin from "firebase-admin";
-import { Express, Request, Response } from "express";
+import { Express } from "express";
 import express = require("express");
 import cors = require("cors");
+import { validateCrudOperations } from "./auth";
 
-const validate = async (req: Request, res: Response, next: () => void) => {
-  if (req.method === "GET") {
-    next();
-    return;
-  }
-
-  if (!req.headers.authorization ||
-      !req.headers.authorization.startsWith("Bearer ")) {
-    console.error("Unauthorized");
-    res.status(401).send("Unauthorized");
-    return;
-  }
-
-  const idToken = req.headers.authorization.split("Bearer ")[1];
-
-  admin.auth().verifyIdToken(idToken)
-      .then((decodedToken) => {
-        admin.firestore().collection("users").doc(decodedToken.uid).get()
-            .then((doc) => {
-              if (doc.data()?.isAdmin) {
-                next();
-              } else {
-                res.status(403).send("Forbidden");
-              }
-            }).catch((error) => {
-              console.error(error);
-              res.status(500).send(error);
-            });
-      })
-      .catch((error) => {
-        console.error(error);
-        res.status(401).send("Unauthorized");
-      });
-};
 
 export const crudOperations = (collectionPath: string): Express => {
   const app = express();
   app.use(cors());
-  app.use(validate);
+  app.use(validateCrudOperations);
 
   app.get("/", (req, res) => {
     admin.firestore().collection(collectionPath).get()
