@@ -3,6 +3,7 @@ import { Express } from "express";
 import express = require("express");
 import cors = require("cors");
 import { validateCrudOperations } from "./auth";
+import { queryValue } from "./utils";
 
 
 export const crudOperations = (collectionPath: string): Express => {
@@ -11,7 +12,14 @@ export const crudOperations = (collectionPath: string): Express => {
   app.use(validateCrudOperations);
 
   app.get("/", (req, res) => {
-    admin.firestore().collection(collectionPath).get()
+    let snapshot: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
+        admin.firestore().collection(collectionPath);
+
+    for (let [fieldPath, value] of Object.entries(req.query)) {
+        snapshot = snapshot.where(fieldPath, "==", queryValue(value));
+    }
+
+    snapshot.get()
         .then((querySnapshot) => {
           console.log("GET success");
           const arr: unknown[] = [];
