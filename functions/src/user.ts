@@ -4,6 +4,7 @@ import { Express, Request, Response } from "express";
 import express = require("express");
 import cors = require("cors");
 import { validateUserOperations } from "./auth";
+// import { getUserFavorites } from "./utils";
 
 export const newUserSignUp = functions.auth.user().onCreate((user) => {
   if (user.providerData?.length) {
@@ -34,6 +35,18 @@ export const usersHttp = (): Express => {
                 if (doc.exists) {
                     console.log("GET success", req.params.id);
                     res.send(doc.data());
+                    /*
+                        NOTE do we want to send event/survey entities along with the user?
+                        const user = doc.data() || {};
+                        const { status, favorites } = await getUserFavorites(user.favorites);
+                        if (status === 500) {
+                            console.error("GET error", favorites);
+                        } else {
+                            console.log("GET success", req.params.id);
+                            user.favorites = favorites;
+                        }
+                        res.status(status).send(user);
+                    */
                 } else {
                     console.log("GET undefined", req.params.id);
                     res.status(404).send("Not found");
