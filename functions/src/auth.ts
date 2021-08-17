@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as admin from "firebase-admin";
+import { isPathWhitelisted } from "./utils";
 
 /**
  * Validation middleware for basic CRUD operations.
@@ -12,12 +13,8 @@ import * as admin from "firebase-admin";
  *   - 403 Forbidden: User doesn't have the necessary permission to access data
  *   - 500 : Internal error
  */
-export const validateCrudOperations = (req: Request, res: Response, next: () => void) => {
-    if (req.method === "GET") {
-        next();
-        return;
-    }
-
+export const validateCrudOperations = (collectionPath: string) =>
+    (req: Request, res: Response, next: () => void) => {
     if (!req.headers.authorization ||
         !req.headers.authorization.startsWith("Bearer ")) {
         console.error("Unauthorized");
@@ -29,18 +26,23 @@ export const validateCrudOperations = (req: Request, res: Response, next: () => 
 
     admin.auth().verifyIdToken(idToken)
         .then((decodedToken) => {
-            admin.firestore().collection("users").doc(decodedToken.uid).get()
-                .then((doc) => {
-                    if (doc.data()?.isAdmin) {
-                        next();
-                    } else {
-                        res.status(403).send("Forbidden");
-                    }
-                })
-                .catch((error) => {
-                    console.error(error);
-                    res.status(500).send(error);
-                });
+            if (req.method === "GET" || isPathWhitelisted(collectionPath + req.path)) {
+                next();
+                return;
+            } else {
+                admin.firestore().collection("users").doc(decodedToken.uid).get()
+                    .then((doc) => {
+                        if (doc.data()?.isAdmin) {
+                            next();
+                        } else {
+                            res.status(403).send("Forbidden");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        res.status(500).send(error);
+                    });
+            }
         })
         .catch((error) => {
             console.error(error);

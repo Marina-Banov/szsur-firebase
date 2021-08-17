@@ -9,7 +9,7 @@ import { getSubcollectionFromDoc, queryValue } from "./utils";
 export const crudOperations = (collectionPath: string): Express => {
   const app = express();
   app.use(cors());
-  app.use(validateCrudOperations);
+  app.use(validateCrudOperations(collectionPath));
   const db = admin.firestore();
 
   app.get("/", (req, res) => {
@@ -74,12 +74,25 @@ export const crudOperations = (collectionPath: string): Express => {
     db.collection(collectionPath).add(req.body)
         .then((doc) => {
           console.log("POST success", doc.id);
-          res.send(doc);
+            res.status(200).send("Successfully added");
         })
         .catch((error) => {
           console.error("POST error", error);
           res.status(500).send(error);
         });
+  });
+
+  app.post("/:id/:subcollection", (req, res) => {
+      db.collection(collectionPath).doc(req.params.id)
+          .collection(req.params.subcollection).add(req.body)
+          .then((doc) => {
+              console.log("POST success", doc.id);
+              res.status(200).send("Successfully added");
+          })
+          .catch((error) => {
+              console.error("POST error", error);
+              res.status(500).send(error);
+          });
   });
 
   app.put("/:id", (req, res) => {

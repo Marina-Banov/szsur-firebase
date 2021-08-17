@@ -1,5 +1,9 @@
 import * as admin from "firebase-admin";
 
+const WHITELIST = [
+    '^(surveys/\\w+/results)$',
+];
+
 export const queryValue = (value: any) => {
     switch(value) {
         case "true":
@@ -39,4 +43,13 @@ export const getDocWithSubcollections = async (doc: any) => {
 export const getSubcollectionFromDoc = async (doc: any, subcollection: string) => {
     const sub = await doc.ref.collection(subcollection).get();
     return sub.docs.map((s: any) => ({ id: s.id, ...s.data() }));
+}
+
+export const isPathWhitelisted = (path: string) => {
+    for (const regex of WHITELIST) {
+        if (RegExp(regex).test(path)) {
+            return true;
+        }
+    }
+    return false;
 }
