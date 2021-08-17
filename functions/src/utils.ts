@@ -24,3 +24,19 @@ export const getUserFavorites = async (favoritesIdList: any[]) => {
     }
     return { status: 200, favorites };
 }
+
+export const getDocWithSubcollections = async (doc: any) => {
+    const item: any = { id: doc.id, ...doc.data() };
+    const subcollections = await doc.ref.listCollections();
+    for (const sub of subcollections) {
+        item[sub.id] = (await sub.get()).docs.map((s: any) => ({
+            id: s.id, ...s.data()
+        }));
+    }
+    return item;
+}
+
+export const getSubcollectionFromDoc = async (doc: any, subcollection: string) => {
+    const sub = await doc.ref.collection(subcollection).get();
+    return sub.docs.map((s: any) => ({ id: s.id, ...s.data() }));
+}
