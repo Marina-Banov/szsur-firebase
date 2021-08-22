@@ -26,6 +26,7 @@ export const crudOperations = (collectionPath: string): Express => {
 
           for (const doc of querySnapshot.docs) {
             arr.push({ id: doc.id, ...doc.data() });
+           // arr.push(getDocWithSubcollections(doc))
           }
 
           console.log("GET success");

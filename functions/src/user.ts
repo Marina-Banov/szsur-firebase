@@ -18,9 +18,10 @@ export const newUserSignUp = functions.auth.user().onCreate((user) => {
 });
 
 export const userDeleted = functions.auth.user().onDelete((user) => {
-  const batch = admin.firestore().batch();
+    const db = admin.firestore();
+  const batch = db.batch();
   const uid = user.uid;
-  const userDocRef = admin.firestore().collection("users").doc(uid);
+  const userDocRef = db.collection("users").doc(uid);
   batch.delete(userDocRef);
   return batch.commit();
 });
@@ -28,9 +29,10 @@ export const userDeleted = functions.auth.user().onDelete((user) => {
 export const usersHttp = (): Express => {
     const app = express();
     app.use(cors());
+    const db = admin.firestore();
 
     app.get("/:id", validateUserOperations, (req: Request, res: Response) => {
-        admin.firestore().collection("users").doc(req.params.id).get()
+        db.collection("users").doc(req.params.id).get()
             .then((doc) => {
                 if (doc.exists) {
                     console.log("GET success", req.params.id);
@@ -72,11 +74,32 @@ export const usersHttp = (): Express => {
 
         try {
             const collectionName = isEvent ? "events" : "surveys";
-            const favoriteDocument = admin.firestore().collection(collectionName).doc(favoriteId);
+            const favoriteDocument = db.collection(collectionName).doc(favoriteId);
             await favoriteDocument.update({ subscribers });
 
-            const userDocument = admin.firestore().collection("users").doc(userId);
+            const userDocument = db.collection("users").doc(userId);
             await userDocument.update({ favorites });
+
+            // NOTE optimistic update on client side
+            res.status(200).send("Successfully updated");
+        } catch (error) {
+            console.error("PUT error", error);
+            res.status(500).send(error);
+        }
+    });
+
+    app.put("/:id/surveys", async (req: Request, res: Response) => {
+        const { surveyId, active, answers } = req.body;
+        const userDocument = db.collection("users").doc(req.params.id);
+        const solvedSurveys = admin.firestore.FieldValue.arrayUnion(surveyId);
+        const surveyResults = db.collection("surveys").doc(surveyId).collection("results");
+
+        try {
+            await userDocument.update({ solvedSurveys });
+            if (active) {
+            } else {
+            }
+            await surveyResults.add(answers);
 
             // NOTE optimistic update on client side
             res.status(200).send("Successfully updated");
