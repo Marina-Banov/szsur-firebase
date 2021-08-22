@@ -80,7 +80,6 @@ export const usersHttp = (): Express => {
             const userDocument = db.collection("users").doc(userId);
             await userDocument.update({ favorites });
 
-            // NOTE optimistic update on client side
             res.status(200).send("Successfully updated");
         } catch (error) {
             console.error("PUT error", error);
@@ -88,20 +87,26 @@ export const usersHttp = (): Express => {
         }
     });
 
-    app.put("/:id/surveys", async (req: Request, res: Response) => {
+    app.put("/:id/surveys", validateUserOperations, async (req: Request, res: Response) => {
         const { surveyId, active, answers } = req.body;
-        const userDocument = db.collection("users").doc(req.params.id);
+
+        const userDoc = db.collection("users").doc(req.params.id);
         const solvedSurveys = admin.firestore.FieldValue.arrayUnion(surveyId);
-        const surveyResults = db.collection("surveys").doc(surveyId).collection("results");
+
+        const surveyDoc = db.collection("surveys").doc(surveyId);
+        const surveyResultsDoc = surveyDoc.collection("results").doc()
+        const answersCount = admin.firestore.FieldValue.increment(1);
+
+        if (active) {
+        } else {
+        }
 
         try {
-            await userDocument.update({ solvedSurveys });
-            if (active) {
-            } else {
-            }
-            await surveyResults.add(answers);
-
-            // NOTE optimistic update on client side
+            const batch = db.batch();
+            batch.update(userDoc, { solvedSurveys });
+            batch.create(surveyResultsDoc, answers);
+            batch.update(surveyDoc, { answersCount });
+            await batch.commit();
             res.status(200).send("Successfully updated");
         } catch (error) {
             console.error("PUT error", error);
