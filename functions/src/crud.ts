@@ -31,11 +31,11 @@ export const crudOperations = (collectionPath: string): Express => {
         }
 
         console.log("GET success");
-        res.send(arr);
+        res.status(200).send(arr);
       })
       .catch((error) => {
         console.error("GET error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 
@@ -46,15 +46,15 @@ export const crudOperations = (collectionPath: string): Express => {
       .then((doc) => {
         if (doc.exists) {
           console.log("GET success", req.params.id);
-          res.send(doc.data());
+          res.status(200).send(doc.data());
         } else {
           console.log("GET undefined", req.params.id);
-          res.status(404).send("Not found");
+          res.status(404).send({ error: "Not found" });
         }
       })
       .catch((error) => {
         console.error("GET error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 
@@ -69,15 +69,15 @@ export const crudOperations = (collectionPath: string): Express => {
             req.params.subcollection
           );
           console.log("GET success", req.params.id);
-          res.send(result);
+          res.status(200).send(result);
         } else {
           console.log("GET undefined", req.params.id);
-          res.status(404).send("Not found");
+          res.status(404).send({ error: "Not found" });
         }
       })
       .catch((error) => {
         console.error("GET error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 
@@ -86,11 +86,11 @@ export const crudOperations = (collectionPath: string): Express => {
       .add(req.body)
       .then((doc) => {
         console.log("POST success", doc.id);
-        res.status(200).send("Successfully added");
+        res.status(200).send({ id: doc.id, ...req.body });
       })
       .catch((error) => {
         console.error("POST error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 
@@ -101,11 +101,11 @@ export const crudOperations = (collectionPath: string): Express => {
       .add(req.body)
       .then((doc) => {
         console.log("POST success", doc.id);
-        res.status(200).send("Successfully added");
+        res.status(200).send({ id: doc.id, ...req.body });
       })
       .catch((error) => {
         console.error("POST error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 
@@ -115,11 +115,11 @@ export const crudOperations = (collectionPath: string): Express => {
       .set(req.body)
       .then((_) => {
         console.log("PUT success", req.params.id);
-        res.status(200).send("Successfully updated");
+        res.status(200).send({ id: req.params.id, ...req.body });
       })
       .catch((error) => {
         console.error("PUT error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 
@@ -129,11 +129,11 @@ export const crudOperations = (collectionPath: string): Express => {
       .delete()
       .then((_) => {
         console.log("DELETE success", req.params.id);
-        res.status(200).send("Successfully deleted");
+        res.status(200).send({ id: req.params.id });
       })
       .catch((error) => {
         console.error("DELETE error", error);
-        res.status(500).send(error);
+        res.status(500).send({ error });
       });
   });
 

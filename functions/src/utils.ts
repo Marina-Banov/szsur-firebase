@@ -1,6 +1,8 @@
 import * as admin from "firebase-admin";
 
-const WHITELIST = ["^(surveys/\\w+/results)$"];
+const WHITELIST: string[] = [
+  /*"^(surveys/\\w+/results)$"*/
+];
 
 export const queryValue = (value: any) => {
   switch (value) {
