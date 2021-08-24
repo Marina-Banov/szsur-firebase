@@ -81,46 +81,46 @@ export const crudOperations = (collectionPath: string): Express => {
       });
   });
 
-  app.post("/", (req, res) => {
-    db.collection(collectionPath)
-      .add(req.body)
-      .then((doc) => {
-        console.log("POST success", doc.id);
-        res.status(200).send({ id: doc.id, ...req.body });
-      })
-      .catch((error) => {
-        console.error("POST error", error);
-        res.status(500).send({ error });
-      });
+  app.post("/", async (req, res) => {
+    try {
+      const collection = db.collection(collectionPath);
+      const docRef = await collection.add(req.body);
+      const data = (await docRef.get()).data();
+      console.log("POST success", docRef.id);
+      res.status(200).send({ id: docRef.id, ...data });
+    } catch (error) {
+      console.error("POST error", error);
+      res.status(500).send({ error });
+    }
   });
 
-  app.post("/:id/:subcollection", (req, res) => {
-    db.collection(collectionPath)
-      .doc(req.params.id)
-      .collection(req.params.subcollection)
-      .add(req.body)
-      .then((doc) => {
-        console.log("POST success", doc.id);
-        res.status(200).send({ id: doc.id, ...req.body });
-      })
-      .catch((error) => {
-        console.error("POST error", error);
-        res.status(500).send({ error });
-      });
+  app.post("/:id/:subcollection", async (req, res) => {
+    try {
+      const collection = db
+        .collection(collectionPath)
+        .doc(req.params.id)
+        .collection(req.params.subcollection);
+      const docRef = await collection.add(req.body);
+      const data = (await docRef.get()).data();
+      console.log("POST success", docRef.id);
+      res.status(200).send({ id: docRef.id, ...data });
+    } catch (error) {
+      console.error("POST error", error);
+      res.status(500).send({ error });
+    }
   });
 
-  app.put("/:id", (req, res) => {
-    db.collection(collectionPath)
-      .doc(req.params.id)
-      .set(req.body)
-      .then((_) => {
-        console.log("PUT success", req.params.id);
-        res.status(200).send({ id: req.params.id, ...req.body });
-      })
-      .catch((error) => {
-        console.error("PUT error", error);
-        res.status(500).send({ error });
-      });
+  app.put("/:id", async (req, res) => {
+    try {
+      const docRef = db.collection(collectionPath).doc(req.params.id);
+      await docRef.set(req.body);
+      const data = (await docRef.get()).data();
+      console.log("PUT success", req.params.id);
+      res.status(200).send({ id: docRef.id, ...data });
+    } catch (error) {
+      console.error("PUT error", error);
+      res.status(500).send({ error });
+    }
   });
 
   app.delete("/:id", (req, res) => {
