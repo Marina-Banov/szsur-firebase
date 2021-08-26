@@ -3,7 +3,11 @@ import { Express } from "express";
 import express = require("express");
 import cors = require("cors");
 import { validateCrudOperations } from "./auth";
-import { getSubcollectionFromDoc, queryValue } from "./utils";
+import {
+  addFilesToStorage,
+  getSubcollectionFromDoc,
+  queryValue,
+} from "./utils";
 
 export const crudOperations = (collectionPath: string): Express => {
   const app = express();
@@ -83,8 +87,9 @@ export const crudOperations = (collectionPath: string): Express => {
 
   app.post("/", async (req, res) => {
     try {
+      const body = await addFilesToStorage(req.body);
       const collection = db.collection(collectionPath);
-      const docRef = await collection.add(req.body);
+      const docRef = await collection.add(body);
       const data = (await docRef.get()).data();
       console.log("POST success", docRef.id);
       res.status(200).send({ id: docRef.id, ...data });
@@ -112,8 +117,9 @@ export const crudOperations = (collectionPath: string): Express => {
 
   app.put("/:id", async (req, res) => {
     try {
+      const body = await addFilesToStorage(req.body);
       const docRef = db.collection(collectionPath).doc(req.params.id);
-      await docRef.set(req.body);
+      await docRef.set(body);
       const data = (await docRef.get()).data();
       console.log("PUT success", req.params.id);
       res.status(200).send({ id: docRef.id, ...data });

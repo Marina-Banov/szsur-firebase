@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { put, putFiles } from "./storage";
 
 const WHITELIST: string[] = [
   /*"^(surveys/\\w+/results)$"*/
@@ -74,4 +75,18 @@ export const isPathWhitelisted = (path: string) => {
     }
   }
   return false;
+};
+
+export const addFilesToStorage = async (data: object) => {
+  const x = Object.entries(data).filter(([_, v]) => typeof v === "object");
+  for (const [field, value] of x) {
+    if (value.length > 0 && !!value[0].base64 && !!value[0].name) {
+      // @ts-ignore
+      data[field] = await putFiles(value);
+    } else if (!!value.base64 && !!value.name) {
+      // @ts-ignore
+      data[field] = await put(value);
+    }
+  }
+  return data;
 };
