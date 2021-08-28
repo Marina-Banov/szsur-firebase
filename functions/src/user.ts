@@ -13,6 +13,7 @@ export const newUserSignUp = functions.auth.user().onCreate((user) => {
       isAdmin: false,
       favorites: [],
       solvedSurveys: [],
+      organisation: "SZSUR",
     });
   }
 });
@@ -130,6 +131,57 @@ export const usersHttp = (): Express => {
       }
     }
   );
+
+  app.put(
+    "/:id/surveys",
+    validateUserOperations,
+    async (req: Request, res: Response) => {
+      const { surveyId, active, answers } = req.body;
+
+      const userDoc = db.collection("users").doc(req.params.id);
+      const solvedSurveys = admin.firestore.FieldValue.arrayUnion(surveyId);
+
+      const surveyDoc = db.collection("surveys").doc(surveyId);
+      const surveyResultsDoc = surveyDoc.collection("results").doc();
+      const answersCount = admin.firestore.FieldValue.increment(1);
+
+      if (active) {
+      } else {
+      }
+
+      try {
+        const batch = db.batch();
+        batch.update(userDoc, { solvedSurveys });
+        batch.create(surveyResultsDoc, answers);
+        batch.update(surveyDoc, { answersCount });
+        await batch.commit();
+        res.status(200).send();
+      } catch (error) {
+        console.error("PUT error", error);
+        res.status(500).send({ error });
+      }
+    }
+  );
+
+  app.put(
+    "/:id/organisation",
+    validateUserOperations,
+    async (req: Request, res: Response) => {
+      const { organisation } = req.body;
+
+      const userDoc = db.collection("users").doc(req.params.id);
+
+      try{ 
+        const batch = db.batch();
+        batch.update(userDoc, "organisation", organisation);
+        await batch.commit();
+        res.status(200).send();
+      } catch (error) {
+        console.error("PUT error", error);
+        res.status(500).send({ error })
+      }
+    } 
+  )
 
   return app;
 };
