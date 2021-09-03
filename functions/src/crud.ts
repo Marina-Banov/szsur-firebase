@@ -182,7 +182,7 @@ export const put =
     try {
       const body = await addFilesToStorage(req.body);
       const docRef = db.collection(collectionPath).doc(req.params.id);
-      await docRef.set(body);
+      await docRef.update(body);
       const data = (await docRef.get()).data();
       console.log("PUT success", req.params.id);
       res.status(200).send({ id: docRef.id, ...data });

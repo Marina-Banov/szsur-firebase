@@ -78,7 +78,9 @@ export const isPathWhitelisted = (path: string) => {
 };
 
 export const addFilesToStorage = async (data: object) => {
-  const x = Object.entries(data).filter(([_, v]) => typeof v === "object");
+  const x = Object.entries(data).filter(
+    ([_, v]) => !!v && typeof v === "object"
+  );
   for (const [field, value] of x) {
     if (value.length > 0 && !!value[0].base64 && !!value[0].name) {
       // @ts-ignore
