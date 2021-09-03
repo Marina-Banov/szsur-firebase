@@ -133,15 +133,12 @@ export const usersHttp = (): Express => {
   );
 
   app.put(
-    "/:id/organisation",
+    "/:id",
     validateUserOperations,
     async (req: Request, res: Response) => {
-      const { organisation } = req.body;
-
       const userDoc = db.collection("users").doc(req.params.id);
-
       try {
-        await userDoc.update({ organisation });
+        await userDoc.update(req.body);
         res.status(200).send();
       } catch (error) {
         console.error("PUT error", error);
