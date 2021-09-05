@@ -36,6 +36,15 @@ export const notifySurveyPublished = functions.firestore
             title: "Objavljeni su rezultati ankete!",
             body: `Pogledaj najnovije rezultate ankete "${after.title}"`,
           },
+          android: {
+            notification: {
+              sound: "default",
+              defaultSound: true,
+              defaultVibrateTimings: true,
+              priority: "high",
+              visibility: "public",
+            },
+          },
         });
         console.log("SEND NOTIFICATION success");
       } catch (error) {
