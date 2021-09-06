@@ -102,14 +102,7 @@ export const sendNotification = (
     topic,
     notification,
     android: {
-      notification: {
-        sound: "default",
-        defaultSound: true,
-        defaultVibrateTimings: true,
-        priority: "high",
-        channelId,
-        visibility: "public",
-      },
+      notification: { channelId },
     },
   });
 };

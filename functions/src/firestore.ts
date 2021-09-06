@@ -46,7 +46,7 @@ export const notifySurveyPublished = functions.firestore
   });
 
 export const notifyEventStartingSoon = functions.firestore
-  .document("events/id")
+  .document("events/{id}")
   .onWrite(async (change, _) => {
     const before = change.before.data();
     const after = change.after.data();
@@ -60,9 +60,6 @@ export const notifyEventStartingSoon = functions.firestore
       if (before?.notificationTaskPath) {
         // a cloud task for this event has already been scheduled. delete it
         await tasksClient.deleteTask({ name: before.notificationTaskPath });
-        await change.after.ref.update({
-          notificationTaskPath: admin.firestore.FieldValue.delete(),
-        });
       }
 
       const queuePath = tasksClient.queuePath(
@@ -71,15 +68,15 @@ export const notifyEventStartingSoon = functions.firestore
         "event-notifications"
       );
       const url = `https://us-central1-${project}.cloudfunctions.net/sendEventNotification`;
-      const body = { id: change.after.id, title: after.title };
+      const payload = { id: change.after.id, title: after.title };
       const task = {
         httpRequest: {
           httpMethod: "POST",
           url,
-          body,
+          body: Buffer.from(JSON.stringify(payload)).toString("base64"),
           headers: { "Content-Type": "application/json" },
         },
-        scheduleTime: { seconds: 120 },
+        scheduleTime: { seconds: 120 + Date.now() / 1000 },
       };
       const [response] = await tasksClient.createTask({
         parent: queuePath,
@@ -92,7 +89,7 @@ export const notifyEventStartingSoon = functions.firestore
     }
   });
 
-export const sendEventNotification = async (req: Request, _: Response) => {
+export const sendEventNotification = async (req: Request, res: Response) => {
   const { id, title } = req.body;
   const notification = {
     title: "Danas se odvija fora događaj u gradu!",
@@ -101,7 +98,9 @@ export const sendEventNotification = async (req: Request, _: Response) => {
   try {
     await sendNotification(id, notification, "events");
     console.log("SEND NOTIFICATION success");
+    res.status(200).end();
   } catch (error) {
     console.error("SEND NOTIFICATION error", error);
+    res.status(500).end();
   }
 };
