@@ -92,3 +92,24 @@ export const addFilesToStorage = async (data: object) => {
   }
   return data;
 };
+
+export const sendNotification = (
+  topic: string,
+  notification: any,
+  channelId: string
+) => {
+  return admin.messaging().send({
+    topic,
+    notification,
+    android: {
+      notification: {
+        sound: "default",
+        defaultSound: true,
+        defaultVibrateTimings: true,
+        priority: "high",
+        channelId,
+        visibility: "public",
+      },
+    },
+  });
+};
