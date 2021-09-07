@@ -13,6 +13,7 @@ export const newUserSignUp = functions.auth.user().onCreate((user) => {
       isAdmin: false,
       favorites: [],
       solvedSurveys: [],
+      organisation: "SZSUR",
     });
   }
 });
@@ -123,6 +124,21 @@ export const usersHttp = (): Express => {
         batch.create(surveyResultsDoc, answers);
         batch.update(surveyDoc, { answersCount });
         await batch.commit();
+        res.status(200).send();
+      } catch (error) {
+        console.error("PUT error", error);
+        res.status(500).send({ error });
+      }
+    }
+  );
+
+  app.put(
+    "/:id",
+    validateUserOperations,
+    async (req: Request, res: Response) => {
+      const userDoc = db.collection("users").doc(req.params.id);
+      try {
+        await userDoc.update(req.body);
         res.status(200).send();
       } catch (error) {
         console.error("PUT error", error);
