@@ -10,7 +10,7 @@ export const newUserSignUp = functions.auth.user().onCreate((user) => {
   if (user.providerData?.length) {
     return admin.firestore().collection("users").doc(user.uid).set({
       email: user.email,
-      isAdmin: false,
+      isAdmin: "",
       favorites: [],
       solvedSurveys: [],
       organisation: "SZSUR",
