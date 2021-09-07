@@ -16,5 +16,8 @@ export const sendEventNotification = functions.https.onRequest(
 );
 export const enums = functions.https.onRequest(crud.generics("enums"));
 export const events = functions.https.onRequest(crud.generics("events"));
+export const organizations = functions.https.onRequest(
+  crud.generics("organizations")
+);
 export const surveys = functions.https.onRequest(crud.surveys());
 export const users = functions.https.onRequest(user.usersHttp());
