@@ -50,16 +50,22 @@ export const notifyEventStartingSoon = functions.firestore
   .onWrite(async (change, _) => {
     const before = change.before.data();
     const after = change.after.data();
-    if (!after || (before && before.startTime === after.startTime)) {
+    if (before?.startTime === after?.startTime) {
       // the start time hasn't changed, no need to schedule a task
       return;
     }
+
     try {
       const tasksClient = new CloudTasksClient();
 
       if (before?.notificationTaskPath) {
         // a cloud task for this event has already been scheduled. delete it
         await tasksClient.deleteTask({ name: before.notificationTaskPath });
+      }
+
+      if (!after) {
+        // event has been deleted. do not schedule the task
+        return;
       }
 
       const queuePath = tasksClient.queuePath(
